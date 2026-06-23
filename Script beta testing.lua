@@ -1,19 +1,19 @@
--- ZAZZ AI v8.3 - SEARCH AUTO AI ANSWER
+-- ZAZZ AI v8.6 FINAL - LENGKAP POL
 if getgenv().ZAZZ_AI_LOADED then ScreenGui:Destroy() end
 getgenv().ZAZZ_AI_LOADED = true
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 local CoreGui = game:GetService("CoreGui")
 local Request = (syn and syn.request) or (http and http.request) or http_request or request
-if not Request then return end
+if not Request then return warn("Executor ga support") end
 
 if CoreGui:FindFirstChild("ZAZZ_AI_UI") then CoreGui.ZAZZ_AI_UI:Destroy() end
 
 -- ===== CONFIG =====
-local GROQ_API_KEY = "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"
+local GROQ_API_KEY = getgenv().GROQ_API_KEY
+if not GROQ_API_KEY then return warn("Set key: getgenv().GROQ_API_KEY = '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'") end
 local MODEL = "llama-3.1-8b-instant"
 
 -- ===== SAVE SYSTEM =====
@@ -64,25 +64,12 @@ local Commands = {
     ["fly"] = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
         return "Fly aktif"
+    end,
+    ["noclip"] = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Lukashhxd/Nolifs/main/noclip"))()
+        return "Noclip ON"
     end
 }
-
--- ===== SEARCH WEB BUAT AI =====
-local function SearchWeb(query)
-    local url = "https://api.duckduckgo.com/?q="..HttpService:UrlEncode(query).."&format=json&no_html=1&skip_disambig=1"
-    local success, res = pcall(function()
-        return Request({Url = url, Method = "GET"})
-    end)
-    if success and res.StatusCode == 200 then
-        local data = HttpService:JSONDecode(res.Body)
-        if data.AbstractText and data.AbstractText ~= "" then
-            return data.AbstractText
-        elseif data.RelatedTopics and #data.RelatedTopics > 0 then
-            return data.RelatedTopics[1].Text or "No info"
-        end
-    end
-    return ""
-end
 
 -- ===== SEARCH SCRIPTBLOX =====
 local function SearchScriptblox(query)
@@ -97,15 +84,14 @@ local function SearchScriptblox(query)
     return {}
 end
 
--- ===== PROMPT AI =====
-local function GetSystemPrompt(webInfo)
+-- ===== PROMPT AI PENDEK =====
+local function GetSystemPrompt()
     local cmdList = ""
     for cmd,_ in pairs(Commands) do cmdList = cmdList..cmd..", " end
-    local context = webInfo ~= "" and "Info: "..webInfo.."\n" or ""
-    return "You are ZAZZ AI. "..context.."Rules: 1. Indonesian. 2. NO EMOJI. 3. NO CODE. 4. Max 15 words. 5. Jawab pake Info kalo ada. 6. Fitur: "..cmdList.."7. Run = [RUN:command]."
+    return "You are ZAZZ AI. Rules: 1. Indonesian. 2. NO EMOJI. 3. MAX 3 KATA. 4. TO THE POINT. 5. Fitur: "..cmdList.."6. Run = [RUN:command]."
 end
 
--- ===== UI CIPUT 350x320 =====
+-- ===== UI 350x320 =====
 local ScreenGui = Instance.new("ScreenGui", CoreGui)
 ScreenGui.Name = "ZAZZ_AI_UI"
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -123,11 +109,10 @@ Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 6)
 local Topbar = Instance.new("Frame", Main)
 Topbar.Size = UDim2.new(1, 0, 0, 25)
 Topbar.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-Topbar.BorderSizePixel = 0
 Instance.new("UICorner", Topbar).CornerRadius = UDim.new(0, 6)
 
 local Title = Instance.new("TextLabel", Topbar)
-Title.Text = " ZAZZ HUB v8.3 - Smart Search"
+Title.Text = " ZAZZ HUB v8.6 - FINAL"
 Title.Size = UDim2.new(1, -50, 1, 0)
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
@@ -211,7 +196,7 @@ SetActiveTab(SearchTab)
 
 -- Search Components
 local SearchBox = Instance.new("TextBox", Main)
-SearchBox.PlaceholderText = "Cari script atau tanya AI..."
+SearchBox.PlaceholderText = "Cari script..."
 SearchBox.Size = UDim2.new(1, -60, 0, 22)
 SearchBox.Position = UDim2.new(0, 5, 0, 55)
 SearchBox.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
@@ -239,7 +224,6 @@ ScrollFrame.BackgroundTransparency = 1
 ScrollFrame.BorderSizePixel = 0
 ScrollFrame.ScrollBarThickness = 3
 ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(88, 101, 242)
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 local UIListLayout = Instance.new("UIListLayout", ScrollFrame)
 UIListLayout.Padding = UDim.new(0, 4)
 
@@ -251,13 +235,12 @@ AIChatFrame.BackgroundTransparency = 1
 AIChatFrame.BorderSizePixel = 0
 AIChatFrame.ScrollBarThickness = 3
 AIChatFrame.ScrollBarImageColor3 = Color3.fromRGB(88, 101, 242)
-AIChatFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 AIChatFrame.Visible = false
 local AIUIListLayout = Instance.new("UIListLayout", AIChatFrame)
 AIUIListLayout.Padding = UDim.new(0, 4)
 
 local AITextBox = Instance.new("TextBox", Main)
-AITextBox.PlaceholderText = "Chat AI..."
+AITextBox.PlaceholderText = "Chat AI / Run command..."
 AITextBox.Size = UDim2.new(1, -50, 0, 22)
 AITextBox.Position = UDim2.new(0, 5, 1, -27)
 AITextBox.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
@@ -281,13 +264,12 @@ Instance.new("UICorner", AISendBtn).CornerRadius = UDim.new(0, 4)
 
 -- Popup Komentar
 local CommentFrame = nil
-local function OpenCommentPopup(scriptId, scriptTitle, totalComments)
+local function OpenCommentPopup(scriptId, totalComments)
 	if CommentFrame then CommentFrame:Destroy() end
 	CommentFrame = Instance.new("Frame", ScreenGui)
 	CommentFrame.Size = UDim2.new(0, 320, 0, 280)
 	CommentFrame.Position = UDim2.new(0.5, -160, 0.5, -140)
 	CommentFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-	CommentFrame.BorderSizePixel = 0
 	CommentFrame.Active = true
 	CommentFrame.Draggable = true
 	Instance.new("UICorner", CommentFrame).CornerRadius = UDim.new(0, 8)
@@ -366,7 +348,7 @@ local function OpenCommentPopup(scriptId, scriptTitle, totalComments)
 					Instance.new("UIPadding", CFrame).PaddingBottom = UDim.new(0, 4)
 					
 					local User = Instance.new("TextLabel", CFrame)
-					User.Text = "@"..(c.commentBy.username or "anonymous")
+					User.Text = "@"..(c.commentBy.username or "anon")
 					User.Size = UDim2.new(1, 0, 0, 12)
 					User.TextColor3 = Color3.fromRGB(88, 166, 255)
 					User.Font = Enum.Font.GothamBold
@@ -392,30 +374,7 @@ local function OpenCommentPopup(scriptId, scriptTitle, totalComments)
 	end)
 end
 
--- Functions
-local function AddAIAnswer(text)
-	local Frame = Instance.new("Frame", ScrollFrame)
-	Frame.Size = UDim2.new(1, 0, 0, 0)
-	Frame.AutomaticSize = Enum.AutomaticSize.Y
-	Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-	Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 4)
-	Instance.new("UIPadding", Frame).PaddingLeft = UDim.new(0, 8)
-	Instance.new("UIPadding", Frame).PaddingRight = UDim.new(0, 8)
-	Instance.new("UIPadding", Frame).PaddingTop = UDim.new(0, 6)
-	Instance.new("UIPadding", Frame).PaddingBottom = UDim.new(0, 6)
-	
-	local Label = Instance.new("TextLabel", Frame)
-	Label.Text = "AI: "..text
-	Label.Size = UDim2.new(1, 0, 0, 0)
-	Label.AutomaticSize = Enum.AutomaticSize.Y
-	Label.TextColor3 = Color3.fromRGB(100, 200, 255)
-	Label.Font = Enum.Font.GothamBold
-	Label.TextSize = 10
-	Label.TextWrapped = true
-	Label.TextXAlignment = Enum.TextXAlignment.Left
-	Label.BackgroundTransparency = 1
-end
-
+-- Add Result
 local function AddResult(data)
 	local Frame = Instance.new("Frame", ScrollFrame)
 	Frame.Size = UDim2.new(1, 0, 0, 80)
@@ -490,7 +449,7 @@ local function AddResult(data)
 	end)
 	
 	CommentBtn.MouseButton1Click:Connect(function()
-		OpenCommentPopup(data._id, data.title, data.commentCount or 0)
+		OpenCommentPopup(data._id, data.commentCount or 0)
 	end)
 	
 	FavBtn.MouseButton1Click:Connect(function()
@@ -507,6 +466,7 @@ local function AddResult(data)
 	end)
 end
 
+-- Add AI Chat
 local function AddAIChat(text, isUser)
     local msg = Instance.new("TextLabel", AIChatFrame)
     msg.Size = UDim2.new(1, -5, 0, 0)
@@ -528,8 +488,8 @@ local function AddAIChat(text, isUser)
     AIChatFrame.CanvasPosition = Vector2.new(0, 9999)
 end
 
+-- Ask AI
 local function AskAI(question)
-    if string.len(GROQ_API_KEY) < 20 then AddAIChat("Key salah", false) return end
     AddAIChat(question, true)
     AITextBox.Text = ""
     AddAIChat("...", false)
@@ -537,11 +497,11 @@ local function AskAI(question)
     local body = HttpService:JSONEncode({
         model = MODEL,
         messages = {
-            {role = "system", content = GetSystemPrompt("")},
+            {role = "system", content = GetSystemPrompt()},
             {role = "user", content = question}
         },
         temperature = 0,
-        max_tokens = 25
+        max_tokens = 10
     })
 
     local success, response = pcall(function()
@@ -634,7 +594,7 @@ HistoryTab.MouseButton1Click:Connect(function()
 	LoadTabContent("History")
 end)
 
--- SEARCH SMART: Script + AI Answer
+-- SEARCH CUMA CARI, GA AUTO RUN
 SearchBtn.MouseButton1Click:Connect(function()
 	local query = SearchBox.Text
 	if query == "" then return end
@@ -643,54 +603,19 @@ SearchBtn.MouseButton1Click:Connect(function()
 		if v:IsA("Frame") then v:Destroy() end
 	end
 	
-	-- 1. Cek command dulu
-	local lowerQuery = string.lower(query)
-	for cmd, func in pairs(Commands) do
-		if string.find(lowerQuery, cmd) then
-			local output = func()
-			AddAIAnswer(output)
-			ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
-			return
-		end
-	end
-	
-	-- 2. Kalo bukan command, search web + jawab AI
-	local webInfo = SearchWeb(query)
-	if webInfo ~= "" then
-		local body = HttpService:JSONEncode({
-			model = MODEL,
-			messages = {
-				{role = "system", content = GetSystemPrompt(webInfo)},
-				{role = "user", content = query}
-			},
-			temperature = 0,
-			max_tokens = 50
-		})
-		
-		local success, response = pcall(function()
-			return Request({
-				Url = "https://api.groq.com/openai/v1/chat/completions",
-				Method = "POST",
-				Headers = {
-					["Content-Type"] = "application/json",
-					["Authorization"] = "Bearer "..GROQ_API_KEY
-				},
-				Body = body
-			})
-		end)
-		
-		if success and response and response.StatusCode == 200 then
-			local data = HttpService:JSONDecode(response.Body)
-			local reply = data.choices[1].message.content
-			reply = reply:gsub("[\128-\255]", "")
-			AddAIAnswer(reply)
-		end
-	end
-	
-	-- 3. Tetep tampilin hasil scriptblox
 	local results = SearchScriptblox(query)
-	for _,script in pairs(results) do
-		AddResult(script)
+	if #results == 0 then
+		local NoResult = Instance.new("TextLabel", ScrollFrame)
+		NoResult.Text = "Script ga ketemu"
+		NoResult.Size = UDim2.new(1, 0, 0, 30)
+		NoResult.TextColor3 = Color3.fromRGB(150, 150, 150)
+		NoResult.BackgroundTransparency = 1
+		NoResult.Font = Enum.Font.Gotham
+		NoResult.TextSize = 10
+	else
+		for _,script in pairs(results) do
+			AddResult(script)
+		end
 	end
 	ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
 end)
